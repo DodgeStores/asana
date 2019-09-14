@@ -2,7 +2,9 @@ package asana
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
+	"log"
 )
 
 //Tag is the structure for asana
@@ -19,7 +21,7 @@ type Tags []Tag
 // accessToken
 func (c *Client) GetTags() ([]Tag, error) {
 
-	resp, err := c.Request("GET", "/tasks", nil)
+	resp, err := c.Request("GET", "/tags", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -29,6 +31,8 @@ func (c *Client) GetTags() ([]Tag, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	log.Println(string(bytesBody))
 
 	tagData := struct {
 		Tags []Tag `json:"data"`
@@ -43,12 +47,12 @@ func (c *Client) GetTags() ([]Tag, error) {
 }
 
 //GetTagByName gets a tag out of a list of tags by name
-func (ts *Tags) GetTagByName(name string) *Tag {
+func (ts *Tags) GetTagByName(name string) (Tag, error) {
 	for _, tag := range *ts {
 		if name == tag.Name {
-			return &tag
+			return tag, nil
 		}
 	}
 
-	return nil
+	return Tag{}, errors.New("tag not found")
 }
