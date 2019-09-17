@@ -14,6 +14,8 @@ type Tag struct {
 	Name string `json:"name"`
 }
 
+//Tags contains an array of pointers to
+// Tag
 type Tags []*Tag
 
 //GetTags returns a list of tags based on the client's
