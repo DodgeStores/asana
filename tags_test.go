@@ -51,10 +51,10 @@ func TestGetTags(t *testing.T) {
 
 func TestGetTag(t *testing.T) {
 
-	tags := []Tag{
-		Tag{Name: "Hello", GID: "1"},
-		Tag{Name: "Hi", GID: "2"},
-		Tag{Name: "Howdy", GID: "3"},
+	tags := Tags{
+		&Tag{Name: "Hello", GID: "1"},
+		&Tag{Name: "Hi", GID: "2"},
+		&Tag{Name: "Howdy", GID: "3"},
 	}
 
 	//Find each test tag by name
@@ -62,19 +62,19 @@ func TestGetTag(t *testing.T) {
 
 		//Take all test tags and find the individual
 		// one by name
-		foundTag, err := GetTagByName(&tags, tag.Name)
+		foundTag, err := tags.GetTagByName(tag.Name)
 		if err != nil {
 			t.Errorf("Error finding tag by name '%v': %+v", tag.Name, err)
 		}
 
-		if *foundTag != tag {
+		if *foundTag != *tag {
 			t.Errorf("Expected tag %+v Got %+v", tag, *foundTag)
 		}
 	}
 
 	//Make sure it doesn't find a tag
 	// that's not there
-	tag, err := GetTagByName(&tags, "Dumbo")
+	tag, err := tags.GetTagByName("Dumbo")
 	if err == nil || tag != nil {
 		t.Errorf("Found tag name '%v' in %+v. Expected error", "Dumbo", tags)
 	}
