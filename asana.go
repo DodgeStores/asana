@@ -1,11 +1,18 @@
 package asana
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
+)
+
+var (
+	//NoGID error when item has no GID
+	NoGID = errors.New("item has no GID")
 )
 
 type Client struct {
@@ -36,7 +43,11 @@ func (c *Client) Request(method, uri string, body io.Reader) (*http.Response, er
 		return nil, err
 	}
 
-	request, err := http.NewRequest(method, fmt.Sprintf("%s/%s", c.BaseURL, uri), body)
+	requestUrl := fmt.Sprintf("%s%s", c.BaseURL, uri)
+	if os.Getenv("DEBUG") == "True" {
+		log.Printf("Request url: %s", requestUrl)
+	}
+	request, err := http.NewRequest(method, requestUrl, body)
 
 	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", c.AccessToken))
 

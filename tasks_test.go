@@ -10,9 +10,56 @@ import (
 var tasksFromTagData = `
 	{"data":[{"id":505120560636486,"gid":"505120560636486","name":"Take Office Photos to Walgreens","resource_type":"task"}]}
 `
-var invalidJson = `
+var invalidJSON = `
 	{"data":[{"id":505120560636486,"gid":"505120560636486","name":"""Take Office Photos to Walgreens"resource_type":"task"}]}
 `
+
+func TestComment(t *testing.T) {
+	var (
+		client *Client
+		mux    *http.ServeMux
+		server *httptest.Server
+	)
+
+	client = NewClient(nil)
+	mux = http.NewServeMux()
+	server = httptest.NewServer(mux)
+	client.BaseURL = server.URL
+
+	//Successful Case
+	mux.HandleFunc("/tasks/1/stories", func(w http.ResponseWriter, r *http.Request) {})
+
+	err := client.CreateTaskComment(&Task{GID: "1"}, "Hi")
+
+	server.Close()
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	//No GID
+	err = client.CreateTaskComment(&Task{}, "Hi")
+
+	if err != NoGID {
+		t.Errorf("Expected %v Got %v", NoGID, err)
+	}
+
+	//Send http error code
+	mux = http.NewServeMux()
+	server = httptest.NewServer(mux)
+	client.BaseURL = server.URL
+
+	mux.HandleFunc("/tasks/1/stories", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	server.Close()
+
+	if err == nil {
+		t.Errorf("Expected error when returned non 2xx status code. Got nil")
+	}
+
+}
 
 func TestGetTasksByTag(t *testing.T) {
 	var (
@@ -27,7 +74,7 @@ func TestGetTasksByTag(t *testing.T) {
 	client.BaseURL = server.URL
 
 	//Successful Case
-	mux.HandleFunc("/tag/90477931759759/tasks", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/tags/90477931759759/tasks", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, tasksFromTagData)
 	})
 
@@ -61,8 +108,8 @@ func TestGetTasksByTag(t *testing.T) {
 	server = httptest.NewServer(mux)
 	client.BaseURL = server.URL
 
-	mux.HandleFunc("/tag/90477931759759/tasks", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, invalidJson)
+	mux.HandleFunc("/tags/90477931759759/tasks", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, invalidJSON)
 	})
 
 	tags, err = client.GetTasksByTag(Tag{
@@ -72,7 +119,7 @@ func TestGetTasksByTag(t *testing.T) {
 	if err == nil {
 		t.Errorf("Expected invalid json, got %v", err)
 	}
-	t.Logf("Invalid JSON Error: %+v", err)
+	t.Logf("Correct Invalid JSON Error: %+v", err)
 
 	server.Close()
 

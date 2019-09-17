@@ -14,9 +14,6 @@ type Tag struct {
 	Name string `json:"name"`
 }
 
-//Tags is an array of type Tag
-type Tags []Tag
-
 //GetTags returns a list of tags based on the client's
 // accessToken
 func (c *Client) GetTags() ([]Tag, error) {
@@ -47,12 +44,12 @@ func (c *Client) GetTags() ([]Tag, error) {
 }
 
 //GetTagByName gets a tag out of a list of tags by name
-func (ts *Tags) GetTagByName(name string) (Tag, error) {
+func GetTagByName(ts *[]Tag, name string) (*Tag, error) {
 	for _, tag := range *ts {
 		if name == tag.Name {
-			return tag, nil
+			return &tag, nil
 		}
 	}
 
-	return Tag{}, errors.New("tag not found")
+	return nil, errors.New("tag not found")
 }
